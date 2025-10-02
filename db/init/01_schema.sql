@@ -90,4 +90,3 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO appuser;
 
 REVOKE CREATE ON SCHEMA clinic FROM appuser;
 
--- SELECT 'schema_ok' AS status;

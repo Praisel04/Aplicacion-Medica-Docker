@@ -4,10 +4,6 @@
 - id: UUID
 - nombre: string (<= 100)
 - apellidos: string (<= 150)
-- dni: string (único)  [opcional si no lo usas]
-- fecha_nacimiento: date
-- email: string (único o con índice)
-- telefono: string
 - created_at: datetime (UTC)
 - updated_at: datetime (UTC)
 
