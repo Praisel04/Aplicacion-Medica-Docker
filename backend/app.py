@@ -91,14 +91,14 @@ def listar_citas():
         limit = 100
 
     sql = """
-    SELECT
-      c.id, c.paciente_id, c.fecha_hora, c.estado, c.created_at, c.updated_at,
-      p.nombre, p.apellidos
-    FROM clinic.cita c
-    JOIN clinic.paciente p ON p.id = c.paciente_id
-    ORDER BY c.fecha_hora ASC
-    LIMIT %s;
-    """
+        SELECT
+        c.id, c.paciente_id, c.fecha_hora, c.estado, c.created_at, c.updated_at,
+        p.nombre, p.apellidos
+        FROM cita c
+        JOIN paciente p ON p.id = c.paciente_id
+        ORDER BY c.fecha_hora ASC
+        LIMIT %s;
+        """
     data = []
     with get_conn() as conn, conn.cursor() as cur:
         cur.execute(sql, (limit,))
