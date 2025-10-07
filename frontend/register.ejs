@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrarse</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+
+    <h1 class="mb-4">Citas médicas</h1>
+    <h2 class="mb-4">Registrarse</h2>
+
+    <p id="mensaje_aviso"><%= mensaje_register %></p>
+
+    <div class="container mt-5">
+        
+        <form method="POST" action="/register">
+            
+            <div class="mb-3">
+                <label for="username" class="form-label">Usuario</label>
+                <input type="text" class="form-control" id="nombre_usuario" name="nombre_usuario" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="password" class="form-label">Contraseña</label>
+                <input type="password" class="form-control" id="contrasenia" name="contrasenia" required>
+            </div>
+            <button type="submit" id="boton_registrar" class="btn btn-primary">Registrarse</button>
+            
+        </form>
+        
+        <form action="/login" method="GET">
+        
+            <p id="enlace_logregister">Si ya tiene una cuenta, inicie sesión <a href="/login">AQUÍ</a></p>
+        
+        </form>
+        
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
