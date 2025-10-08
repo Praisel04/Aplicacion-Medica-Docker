@@ -2,6 +2,9 @@ import os
 import psycopg
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from werkzeug.security import generate_password_hash, check_password_hash
+import uuid
+
 
 # === Config desde variables de entorno ===
 DB_HOST = os.getenv("DB_HOST", "db")
@@ -60,60 +63,199 @@ def health():
     except Exception as e:
         return jsonify({"status": "degraded", "db": "down", "error": str(e)}), 503
 
-@app.get("/api/citas")
-def listar_citas():
-    # opcional: ?limit=50
-    """
-    Devuelve una lista de citas con sus respectivos pacientes.
-    
-    La lista se devuelve en formato JSON y contiene los siguientes campos:
-    
-    - id: El identificador de la cita.
-    - paciente_id: El identificador del paciente.
-    - fecha_hora: La fecha y hora de la cita.
-    - estado: El estado de la cita.
-    - created_at: La fecha y hora en la que se creó la cita.
-    - updated_at: La fecha y hora en la que se actualizó la cita.
-    - paciente_nombre: El nombre del paciente.
-    - paciente_apellidos: Los apellidos del paciente.
-    
-    Se puede especificar el límite de cantidad de resultados a devolver
-    mediante el parámetro "limit". Este parámetro debe ser un entero
-    entre 1 y 500. Si no se especifica, se devuelve un límite de 100.
-    
-    :return: Un objeto JSON con la lista de citas.
-    :rtype: flask.Response
-    """
-    try:
-        limit = int(request.args.get("limit", 100))
-        limit = max(1, min(limit, 500))
-    except ValueError:
-        limit = 100
 
-    sql = """
-    SELECT
-      c.id, c.paciente_id, c.fecha_hora, c.estado, c.created_at, c.updated_at,
-      p.nombre, p.apellidos
-    FROM clinic.cita c
-    JOIN clinic.paciente p ON p.id = c.paciente_id
-    ORDER BY c.fecha_hora ASC
-    LIMIT %s;
-    """
-    data = []
-    with get_conn() as conn, conn.cursor() as cur:
-        cur.execute(sql, (limit,))
-        for (cid, pid, fh, estado, c_at, u_at, nombre, apellidos) in cur.fetchall():
-            data.append({
-                "id": str(cid),
-                "paciente_id": str(pid),
-                "fecha_hora": fh.isoformat(),
-                "estado": estado,
-                "created_at": c_at.isoformat(),
-                "updated_at": u_at.isoformat(),
-                "paciente_nombre": nombre,
-                "paciente_apellidos": apellidos,
-            })
-    return jsonify(data), 200
+# === Obtener citas del usuario ===
+@app.route('/citas', methods=['GET'])
+def get_citas():
+    user_id = request.args.get('user_id')
+
+    if not user_id:
+        return jsonify({"error": "Falta el parámetro user_id"}), 400
+
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT id, fecha_hora, estado, created_at
+            FROM cita
+            WHERE usuario_id = %s
+            ORDER BY fecha_hora ASC;
+        """, (user_id,))
+
+        citas = [
+            {
+                "id": str(row[0]),
+                "fecha_hora": row[1],
+                "estado": row[2],
+                "created_at": row[3]
+            }
+            for row in cur.fetchall()
+        ]
+
+        cur.close()
+        conn.close()
+
+        return jsonify(citas), 200
+
+    except Exception as e:
+        print("Error en /citas (GET):", e)
+        return jsonify({"error": "Error interno del servidor"}), 500
+
+
+# === Crear una nueva cita ===
+@app.route('/citas', methods=['POST'])
+def crear_cita():
+    data = request.get_json()
+    user_id = data.get('user_id')
+    fecha_hora = data.get('fecha_hora')
+    estado = data.get('estado', 'programada')
+
+    if not user_id or not fecha_hora:
+        return jsonify({"error": "Faltan campos obligatorios"}), 400
+
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+
+        cur.execute("""
+            INSERT INTO cita (id, usuario_id, fecha_hora, estado)
+            VALUES (gen_random_uuid(), %s, %s, %s)
+            RETURNING id;
+        """, (user_id, fecha_hora, estado))
+
+        new_id = cur.fetchone()[0]
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return jsonify({"message": "Cita creada correctamente", "cita_id": str(new_id)}), 201
+
+    except Exception as e:
+        print("Error en /citas (POST):", e)
+        return jsonify({"error": "Error interno del servidor"}), 500
+
+
+# === Eliminar una cita ===
+@app.route('/citas/<cita_id>', methods=['DELETE'])
+def eliminar_cita(cita_id):
+    user_id = request.args.get('user_id')
+
+    if not user_id:
+        return jsonify({"error": "Falta el parámetro user_id"}), 400
+
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+
+        # Solo elimina si pertenece al usuario
+        cur.execute("""
+            DELETE FROM cita
+            WHERE id = %s AND usuario_id = %s
+            RETURNING id;
+        """, (cita_id, user_id))
+
+        deleted = cur.fetchone()
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        if not deleted:
+            return jsonify({"error": "Cita no encontrada o no pertenece al usuario"}), 404
+
+        return jsonify({"message": "Cita eliminada correctamente"}), 200
+
+    except Exception as e:
+        print("Error en /citas (DELETE):", e)
+        return jsonify({"error": "Error interno del servidor"}), 500
+
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.get_json()
+
+    # Validar que los campos estén presentes
+    if not data or not all(k in data for k in ('nombre', 'email', 'password')):
+        return jsonify({"error": "Faltan campos obligatorios"}), 400
+
+    nombre = data['nombre']
+    email = data['email']
+    password = data['password']
+
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+
+        # Verificar si el correo ya existe
+        cur.execute("SELECT id FROM usuario WHERE email = %s;", (email,))
+        existing_user = cur.fetchone()
+
+        if existing_user:
+            cur.close()
+            conn.close()
+            return jsonify({"error": "El correo ya está registrado"}), 400
+
+        # Cifrar la contraseña
+        password_hash = generate_password_hash(password)
+
+        # Crear un nuevo usuario
+        user_id = str(uuid.uuid4())
+        cur.execute("""
+            INSERT INTO usuario (id, nombre, email, password_hash)
+            VALUES (%s, %s, %s, %s)
+            RETURNING id;
+        """, (user_id, nombre, email, password_hash))
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return jsonify({
+            "message": "Usuario registrado correctamente",
+            "user_id": user_id
+        }), 201
+
+    except Exception as e:
+        print("Error en /register:", e)
+        return jsonify({"error": "Error interno del servidor"}), 500
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+
+    if not data or not all(k in data for k in ('email', 'password')):
+        return jsonify({"error": "Faltan campos obligatorios"}), 400
+
+    email = data['email']
+    password = data['password']
+
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+
+        # Buscar usuario por email
+        cur.execute("SELECT id, password_hash FROM usuario WHERE email = %s;", (email,))
+        user = cur.fetchone()
+
+        cur.close()
+        conn.close()
+
+        if not user:
+            return jsonify({"error": "Correo no encontrado"}), 401
+
+        user_id, stored_hash = user
+
+        # Verificar la contraseña
+        if not check_password_hash(stored_hash, password):
+            return jsonify({"error": "Contraseña incorrecta"}), 401
+
+        return jsonify({
+            "message": "Inicio de sesión correcto",
+            "user_id": str(user_id)
+        }), 200
+
+    except Exception as e:
+        print("Error en /login:", e)
+        return jsonify({"error": "Error interno del servidor"}), 500
 
 if __name__ == "__main__":
     # para ejecutar sin Gunicorn (desarrollo local opcional)
