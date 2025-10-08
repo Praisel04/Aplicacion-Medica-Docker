@@ -233,7 +233,7 @@ def login():
         cur = conn.cursor()
 
         # Buscar usuario por email
-        cur.execute("SELECT id, password_hash FROM usuario WHERE email = %s;", (email,))
+        cur.execute("SELECT id, nombre,password_hash FROM usuario WHERE email = %s;", (email,))
         user = cur.fetchone()
 
         cur.close()
@@ -242,7 +242,7 @@ def login():
         if not user:
             return jsonify({"error": "Correo no encontrado"}), 401
 
-        user_id, stored_hash = user
+        user_id, nombre, stored_hash = user
 
         # Verificar la contraseña
         if not check_password_hash(stored_hash, password):
@@ -250,7 +250,8 @@ def login():
 
         return jsonify({
             "message": "Inicio de sesión correcto",
-            "user_id": str(user_id)
+            "user_id": str(user_id),
+            "nombre" : nombre
         }), 200
 
     except Exception as e:

@@ -1,4 +1,3 @@
-
 const user_id = localStorage.getItem("user_id");
 const API_URL = `http://localhost:8000/citas?user_id=${user_id}`;
 const statusDiv = document.getElementById("status");
@@ -7,6 +6,15 @@ const tbody = document.getElementById("citas-body");
 const formDiv = document.getElementById("formulario-cita");
 const btnNuevaCita = document.getElementById("btn-nueva-cita");
 const formCita = document.getElementById("form-nueva-cita");
+const nombreUsuarioSpan = document.getElementById("nombre-usuario");
+
+// Verificar si el usuario está logueado
+if (!user_id) {
+  alert("❌ Debes iniciar sesión para ver tus citas.");
+  window.location.href = "./login.html";
+}
+// Mostrar nombre de usuario
+nombreUsuarioSpan.textContent = localStorage.getItem("nombre");
 
 // Mostrar formulario
 btnNuevaCita.addEventListener("click", () => {
@@ -102,5 +110,6 @@ document.getElementById("btn-salir").addEventListener("click", () => {
   localStorage.clear();
   window.location.href = "./login.html";
 });
+
 
 cargarCitas();

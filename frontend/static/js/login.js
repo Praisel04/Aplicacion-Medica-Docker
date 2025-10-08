@@ -1,36 +1,4 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="style.css">
-</head>
-<body class="container mt-5">
-
-    <h1 class="mb-4 text-center">Citas médicas</h1>
-    <h2 class="mb-4 text-center">Iniciar sesión</h2>
-
-    <div id="mensaje_aviso" class="alert d-none"></div>
-
-    <form id="formLogin">
-        <div class="mb-3">
-            <label for="email" class="form-label">Correo Electrónico</label>
-            <input type="email" class="form-control" id="email" name="email" required>
-        </div>
-
-        <div class="mb-3">
-            <label for="password" class="form-label">Contraseña</label>
-            <input type="password" class="form-control" id="password" name="password" required>
-        </div>
-
-        <button type="submit" class="btn btn-primary w-100">Iniciar sesión</button>
-        <a href="./register.html" class="btn btn-link w-100 mt-2">Registrarse</a>
-    </form>
-
-    <script>
-    document.getElementById('formLogin').addEventListener('submit', async (event) => {
+document.getElementById('formLogin').addEventListener('submit', async (event) => {
         event.preventDefault(); // Evita recargar la página
 
         const email = document.getElementById('email').value.trim();
@@ -52,8 +20,11 @@
                 mensaje.className = 'alert alert-success';
                 mensaje.classList.remove('d-none');
 
-                // Ejemplo: guardar ID de usuario en localStorage (para futuras acciones)
+                // Guardar user_id y nombre en localStorage
                 localStorage.setItem('user_id', result.user_id);
+                localStorage.setItem('nombre', result.nombre);
+
+                alert(`Bienvenido, ${result.nombre}!`);
 
                 // Redirigir a la página principal de citas después de 2 segundos
                 setTimeout(() => {
@@ -73,7 +44,3 @@
             mensaje.classList.remove('d-none');
         }
     });
-    </script>
-
-</body>
-</html>
