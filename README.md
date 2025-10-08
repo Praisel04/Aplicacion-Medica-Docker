@@ -97,7 +97,7 @@ docker compose up -d
 
 ## 🧠 Próximas Mejoras Planificadas
 	•	👨‍⚕️ Rol Médico: añadir permisos especiales para visualizar y editar todas las citas.
-  • 🖥️ Auditorias: Añadir tablas de auditoria para mantener una seguridad avanzada en la APP.
+	•	🖥️ Auditorias: Añadir tablas de auditoria para mantener una seguridad avanzada en la APP. 
 
 ## 👨‍💻 Autores
 <table align="center">
