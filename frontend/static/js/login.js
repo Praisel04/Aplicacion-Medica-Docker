@@ -24,7 +24,7 @@ document.getElementById('formLogin').addEventListener('submit', async (event) =>
                 localStorage.setItem('user_id', result.user_id);
                 localStorage.setItem('nombre', result.nombre);
 
-                alert(`Bienvenido, ${result.nombre}!`);
+                
 
                 // Redirigir a la página principal de citas después de 2 segundos
                 setTimeout(() => {

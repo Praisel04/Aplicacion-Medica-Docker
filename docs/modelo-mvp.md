@@ -32,3 +32,11 @@
 | `created_at`    | TIMESTAMP           | Fecha de registro                           |
 | `updated_at`    | TIMESTAMP           | Última modificación                         |
 
+
+# NUEVO MODELO (09/10/2025)
+
+| Tabla            | Propósito                                     | Relación                                                        |
+| ---------------- | --------------------------------------------- | --------------------------------------------------------------- |
+| 🧍 **usuario**   | Contiene solo los pacientes                   | Cada paciente puede tener varias citas                          |
+| 👨‍⚕️ **medico** | Contiene los médicos (registro independiente) | Cada médico puede tener muchas citas                            |
+| 📅 **cita**      | Conecta un paciente con un médico             | `cita.paciente_id → usuario.id`<br>`cita.medico_id → medico.id` |

@@ -77,7 +77,7 @@ def get_citas():
         cur = conn.cursor()
 
         cur.execute("""
-            SELECT id, fecha_hora, estado, created_at
+            SELECT id, nombre_cita, fecha_hora, estado, created_at
             FROM cita
             WHERE usuario_id = %s
             ORDER BY fecha_hora ASC;
@@ -86,9 +86,10 @@ def get_citas():
         citas = [
             {
                 "id": str(row[0]),
-                "fecha_hora": row[1],
-                "estado": row[2],
-                "created_at": row[3]
+                "nombre_cita": row[1],
+                "fecha_hora": row[2],
+                "estado": row[3],
+                "created_at": row[4]
             }
             for row in cur.fetchall()
         ]
@@ -108,6 +109,7 @@ def get_citas():
 def crear_cita():
     data = request.get_json()
     user_id = data.get('user_id')
+    nombre_cita = data.get('nombre_cita')
     fecha_hora = data.get('fecha_hora')
     estado = data.get('estado', 'programada')
 
@@ -119,10 +121,10 @@ def crear_cita():
         cur = conn.cursor()
 
         cur.execute("""
-            INSERT INTO cita (id, usuario_id, fecha_hora, estado)
-            VALUES (gen_random_uuid(), %s, %s, %s)
+            INSERT INTO cita (id, usuario_id, nombre_cita, fecha_hora, estado)
+            VALUES (gen_random_uuid(), %s, %s, %s, %s)
             RETURNING id;
-        """, (user_id, fecha_hora, estado))
+        """, (user_id, nombre_cita,fecha_hora, estado))
 
         new_id = cur.fetchone()[0]
         conn.commit()
@@ -256,6 +258,56 @@ def login():
 
     except Exception as e:
         print("Error en /login:", e)
+        return jsonify({"error": "Error interno del servidor"}), 500
+    
+# === EDITAR CITA ===
+@app.route('/citas/<cita_id>', methods=['PUT'])
+def editar_cita(cita_id):
+    data = request.get_json()
+    user_id = data.get('user_id')
+    nombre_cita = data.get('nombre_cita')
+    fecha_hora = data.get('fecha_hora')
+    estado = data.get('estado')
+
+    if not user_id:
+        return jsonify({"error": "Falta el user_id"}), 400
+
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+
+        # Verificar que la cita pertenece al usuario
+        cur.execute("SELECT usuario_id FROM cita WHERE id = %s;", (cita_id,))
+        result = cur.fetchone()
+        if not result:
+            return jsonify({"error": "Cita no encontrada"}), 404
+        if str(result[0]) != str(user_id):
+            return jsonify({"error": "No autorizado"}), 403
+
+        update_fields = []
+        values = []
+        if nombre_cita:
+            update_fields.append("nombre_cita = %s")
+            values.append(nombre_cita)
+        if fecha_hora:
+            update_fields.append("fecha_hora = %s")
+            values.append(fecha_hora)
+        if estado:
+            update_fields.append("estado = %s")
+            values.append(estado)
+
+        if not update_fields:
+            return jsonify({"error": "No hay cambios para aplicar"}), 400
+
+        values.append(cita_id)
+        query = f"UPDATE cita SET {', '.join(update_fields)}, updated_at = now() WHERE id = %s"
+        cur.execute(query, tuple(values))
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({"message": "Cita actualizada correctamente"}), 200
+    except Exception as e:
+        print("Error en /citas (PUT):", e)
         return jsonify({"error": "Error interno del servidor"}), 500
 
 if __name__ == "__main__":

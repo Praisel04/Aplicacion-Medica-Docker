@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS usuario (
 CREATE TABLE IF NOT EXISTS cita (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   usuario_id UUID NOT NULL REFERENCES usuario(id) ON DELETE CASCADE,
+  nombre_cita VARCHAR(255) NOT NULL,
   fecha_hora TIMESTAMPTZ NOT NULL,
   estado estado_cita NOT NULL DEFAULT 'programada',
   created_at TIMESTAMPTZ DEFAULT now(),

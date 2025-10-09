@@ -10,9 +10,10 @@ const nombreUsuarioSpan = document.getElementById("nombre-usuario");
 
 // Verificar si el usuario está logueado
 if (!user_id) {
-  alert("❌ Debes iniciar sesión para ver tus citas.");
+  mostrarMensaje("❌ Debes iniciar sesión para ver tus citas.");
   window.location.href = "./login.html";
 }
+
 // Mostrar nombre de usuario
 nombreUsuarioSpan.textContent = localStorage.getItem("nombre");
 
@@ -21,7 +22,9 @@ btnNuevaCita.addEventListener("click", () => {
   formDiv.classList.toggle("d-none");
 });
 
-// Cargar citas del usuario
+// ============================
+// 📅 CARGAR CITAS DEL USUARIO
+// ============================
 async function cargarCitas() {
   tbody.innerHTML = "";
   statusDiv.textContent = "Cargando citas...";
@@ -43,10 +46,14 @@ async function cargarCitas() {
     citas.forEach(cita => {
       const row = document.createElement("tr");
       row.innerHTML = `
-          <td>${new Date(cita.fecha_hora).toLocaleString()}</td>
-          <td class="estado ${cita.estado}">${cita.estado}</td>
-          <td><button class="btn btn-sm btn-danger" onclick="eliminarCita('${cita.id}')">🗑️ Eliminar</button></td>
-        `;
+        <td>${cita.nombre_cita}</td>
+        <td>${new Date(cita.fecha_hora).toLocaleString()}</td>
+        <td class="estado ${cita.estado}">${cita.estado}</td>
+        <td>
+          <button class="btn btn-sm btn-warning me-2" onclick="abrirModalEditar('${cita.id}', '${cita.nombre_cita}', '${cita.fecha_hora}', '${cita.estado}')">✏️ Editar</button>
+          <button class="btn btn-sm btn-danger" onclick="eliminarCita('${cita.id}')">🗑️ Eliminar</button>
+        </td>
+      `;
       tbody.appendChild(row);
     });
   } catch (err) {
@@ -55,35 +62,40 @@ async function cargarCitas() {
   }
 }
 
-// Crear nueva cita
+// ============================
+// 🧾 CREAR NUEVA CITA
+// ============================
 formCita.addEventListener("submit", async (e) => {
   e.preventDefault();
   const fecha_hora = document.getElementById("fecha_hora").value;
-  if (!fecha_hora) return alert("Debes seleccionar una fecha y hora.");
+  const nombre_cita = document.getElementById("nombre_cita").value;
+  if (!fecha_hora) return mostrarMensaje("Debes seleccionar una fecha y hora.");
 
   try {
     const resp = await fetch("http://localhost:8000/citas", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_id, fecha_hora, estado: "programada" })
+      body: JSON.stringify({ user_id, nombre_cita, fecha_hora, estado: "programada" })
     });
 
     const data = await resp.json();
     if (resp.ok) {
-      alert("✅ Cita creada correctamente");
+      mostrarMensaje("✅ Cita creada correctamente");
       formDiv.classList.add("d-none");
       formCita.reset();
       cargarCitas();
     } else {
-      alert("❌ " + (data.error || "Error al crear la cita"));
+      mostrarMensaje("❌ " + (data.error || "Error al crear la cita"));
     }
   } catch (err) {
     console.error(err);
-    alert("❌ Error de conexión con el servidor");
+    mostrarMensaje("❌ Error de conexión con el servidor");
   }
 });
 
-// Eliminar cita
+// ============================
+// ❌ ELIMINAR CITA
+// ============================
 async function eliminarCita(id) {
   if (!confirm("¿Seguro que deseas eliminar esta cita?")) return;
 
@@ -94,22 +106,100 @@ async function eliminarCita(id) {
     const data = await resp.json();
 
     if (resp.ok) {
-      alert("🗑️ Cita eliminada correctamente");
+      mostrarMensaje("🗑️ Cita eliminada correctamente");
       cargarCitas();
     } else {
-      alert("❌ " + (data.error || "No se pudo eliminar la cita"));
+      mostrarMensaje("❌ " + (data.error || "No se pudo eliminar la cita"));
     }
   } catch (err) {
     console.error(err);
-    alert("❌ Error eliminando la cita");
+    mostrarMensaje("❌ Error eliminando la cita");
   }
 }
 
-// Cerrar sesión
+// ============================
+// ✏️ EDITAR CITA
+// ============================
+
+// Crear dinámicamente un modal Bootstrap y añadirlo al DOM
+
+let citaEditando = null;
+let modalEditar = null;
+
+function abrirModalEditar(id, nombre, fecha, estado) {
+  citaEditando = id;
+  document.getElementById("edit-id").value = id;
+  document.getElementById("edit-nombre-cita").value = nombre;
+  document.getElementById("edit-fecha-hora").value = fecha.slice(0, 16);
+  document.getElementById("edit-estado").value = estado;
+
+  modalEditar = new bootstrap.Modal(document.getElementById("modal-editar"));
+  modalEditar.show();
+}
+
+// 🔹 Vinculamos el listener directamente al botón después de insertarlo
+document.getElementById("btnGuardarEdicion").addEventListener("click", async () => {
+  const nombre_cita = document.getElementById("edit-nombre-cita").value;
+  const fecha_hora = document.getElementById("edit-fecha-hora").value;
+  const estado = document.getElementById("edit-estado").value;
+
+  
+
+  try {
+    const resp = await fetch(`http://localhost:8000/citas/${citaEditando}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id, nombre_cita, fecha_hora, estado })
+    });
+
+    const data = await resp.json();
+    console.log("🔵 Respuesta del servidor:", data);
+
+    if (resp.ok) {
+      mostrarMensaje("✅ Cita actualizada correctamente");
+      modalEditar.hide();
+      cargarCitas();
+    } else {
+      mostrarMensaje("❌ " + (data.error || "Error al editar la cita"));
+    }
+  } catch (err) {
+    console.error("❌ Error de conexión:", err);
+    mostrarMensaje("❌ No se pudo conectar al servidor");
+  }
+});
+
+// ==========================
+// 🧾 Función de mensajes UX
+// ==========================
+const mensajeAviso = document.getElementById("mensaje-aviso");
+
+/**
+ * Muestra un mensaje en pantalla.
+ * @param {string} texto - El mensaje a mostrar.
+ * @param {"success"|"error"|"info"} tipo - Tipo de mensaje (controla el color).
+ */
+function mostrarMensaje(texto, tipo = "info") {
+  mensajeAviso.textContent = texto;
+  mensajeAviso.classList.remove("d-none", "alert-success", "alert-danger", "alert-info");
+
+  if (tipo === "success") mensajeAviso.classList.add("alert-success");
+  else if (tipo === "error") mensajeAviso.classList.add("alert-danger");
+  else mensajeAviso.classList.add("alert-info");
+
+  // Desaparece automáticamente después de unos segundos (opcional)
+  setTimeout(() => {
+    mensajeAviso.classList.add("d-none");
+  }, 4000);
+}
+
+
+
+// ============================
+// 🚪 CERRAR SESIÓN
+// ============================
 document.getElementById("btn-salir").addEventListener("click", () => {
   localStorage.clear();
   window.location.href = "./login.html";
 });
-
 
 cargarCitas();
