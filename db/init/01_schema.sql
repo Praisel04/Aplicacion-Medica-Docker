@@ -1,13 +1,7 @@
--- 01_schema.sql — Esquema mínimo + permisos
 \set ON_ERROR_STOP on
 
--- Extensión para UUID v4
+-- Extensión UUID
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
--- Esquema lógico
-CREATE SCHEMA IF NOT EXISTS clinic;
--- ALTER DATABASE CURRENT SET search_path = clinic, public;
--- SET search_path TO clinic, public;
 
 -- ===== Tipos =====
 DO $$
@@ -17,39 +11,34 @@ BEGIN
   END IF;
 END $$;
 
--- ===== Tablas =====
+-- ===== TABLAS =====
 
--- PACIENTE: id, nombre, apellidos, created_at, updated_at
-CREATE TABLE IF NOT EXISTS paciente (
-  id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  nombre      VARCHAR(100) NOT NULL,
-  apellidos   VARCHAR(150) NOT NULL,
-  created_at  TIMESTAMPTZ  NOT NULL DEFAULT now(),
-  updated_at  TIMESTAMPTZ  NOT NULL DEFAULT now()
+-- USUARIO
+CREATE TABLE IF NOT EXISTS usuario (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  nombre VARCHAR(100) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- CITA: id, paciente_id, fecha_hora, estado, created_at, updated_at
+-- CITA
 CREATE TABLE IF NOT EXISTS cita (
-  id           UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
-  paciente_id  UUID         NOT NULL,
-  fecha_hora   TIMESTAMPTZ  NOT NULL,     -- guarda en UTC
-  estado       estado_cita  NOT NULL,
-  created_at   TIMESTAMPTZ  NOT NULL DEFAULT now(),
-  updated_at   TIMESTAMPTZ  NOT NULL DEFAULT now(),
-  CONSTRAINT fk_cita_paciente
-    FOREIGN KEY (paciente_id)
-    REFERENCES paciente(id)
-    ON DELETE RESTRICT
-    ON UPDATE CASCADE
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  usuario_id UUID NOT NULL REFERENCES usuario(id) ON DELETE CASCADE,
+  nombre_cita VARCHAR(255) NOT NULL,
+  fecha_hora TIMESTAMPTZ NOT NULL,
+  estado estado_cita NOT NULL DEFAULT 'programada',
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- ===== Índices =====
--- Búsqueda por fecha de citas (próximas/ordenadas)
-CREATE INDEX IF NOT EXISTS ix_cita_fecha_hora ON cita (fecha_hora);
--- Citas por paciente ordenadas por fecha
-CREATE INDEX IF NOT EXISTS ix_cita_paciente_fecha ON cita (paciente_id, fecha_hora);
+-- ===== ÍNDICES =====
+CREATE INDEX IF NOT EXISTS ix_cita_usuario_fecha ON cita (usuario_id, fecha_hora);
+CREATE INDEX IF NOT EXISTS ix_cita_estado ON cita (estado);
 
--- ===== Trigger updated_at (para ambas tablas) =====
+-- ===== TRIGGERS updated_at =====
 CREATE OR REPLACE FUNCTION set_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -60,9 +49,9 @@ $$ LANGUAGE plpgsql;
 
 DO $$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'trg_paciente_updated_at') THEN
-    CREATE TRIGGER trg_paciente_updated_at
-    BEFORE UPDATE ON paciente
+  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'trg_usuario_updated_at') THEN
+    CREATE TRIGGER trg_usuario_updated_at
+    BEFORE UPDATE ON usuario
     FOR EACH ROW EXECUTE FUNCTION set_updated_at();
   END IF;
 
@@ -73,7 +62,7 @@ BEGIN
   END IF;
 END $$;
 
--- ===== Usuario de aplicación y permisos mínimos =====
+-- ===== USUARIO DE APLICACIÓN =====
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'appuser') THEN
@@ -81,12 +70,6 @@ BEGIN
   END IF;
 END $$;
 
-REVOKE ALL ON SCHEMA clinic FROM PUBLIC;
-GRANT  USAGE ON SCHEMA clinic TO appuser;
-
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA clinic TO appuser;
-ALTER DEFAULT PRIVILEGES IN SCHEMA clinic
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO appuser;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO appuser;
-
-REVOKE CREATE ON SCHEMA clinic FROM appuser;
-
