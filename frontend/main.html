@@ -9,17 +9,26 @@
 </head>
 <body>
 
+    <h1 class="mb-4">Citas médicas</h1>
+    <h2 class="mb-4">Bienvenido a la aplicación de gestión de citas médicas.</h2>
+
     <div class="container mt-5">
-        <h1 class="mb-4">Citas médicas</h1>
-        <p>Bienvenido a la aplicación de gestión de citas médicas.</p>
         
+        <table id="tabla-citas" class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Paciente</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+        </table>
         <a href="./add.html" class="btn btn-secondary">Añadir cita</a>
         
     </div>
     
     <div>
-        <a href="./login.html" class="btn btn-primary">Iniciar sesión</a>
-        <a href="./register.html" class="btn btn-primary">Registrarse</a>
+        <a href="./logsin.html" class="btn btn-primary">Cerrar sesión</a>
     </div>
     
     <script src="app.js"></script>
