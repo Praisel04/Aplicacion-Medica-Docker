@@ -68,6 +68,7 @@ def health():
 @app.route('/citas', methods=['GET'])
 def get_citas():
     user_id = request.args.get('user_id')
+    user_rol = request.args.get('rol')
 
     if not user_id:
         return jsonify({"error": "Falta el parámetro user_id"}), 400
@@ -76,12 +77,21 @@ def get_citas():
         conn = get_conn()
         cur = conn.cursor()
 
-        cur.execute("""
-            SELECT id, nombre_cita, fecha_hora, estado, created_at
-            FROM cita
-            WHERE usuario_id = %s
-            ORDER BY fecha_hora ASC;
-        """, (user_id,))
+        if user_rol == 'medico':
+            # Médicos ven todas las citas
+            cur.execute("""
+                SELECT id, nombre_cita, fecha_hora, estado, created_at
+                FROM cita
+                ORDER BY fecha_hora ASC;
+            """)
+        else:
+            # Pacientes ven sus citas
+            cur.execute("""
+                SELECT id, nombre_cita, fecha_hora, estado, created_at
+                FROM cita
+                WHERE usuario_id = %s
+                ORDER BY fecha_hora ASC;
+            """, (user_id,))
 
         citas = [
             {
@@ -176,12 +186,13 @@ def register():
     data = request.get_json()
 
     # Validar que los campos estén presentes
-    if not data or not all(k in data for k in ('nombre', 'email', 'password')):
+    if not data or not all(k in data for k in ('nombre', 'email', 'password', 'rol')):
         return jsonify({"error": "Faltan campos obligatorios"}), 400
 
     nombre = data['nombre']
     email = data['email']
     password = data['password']
+    rol = data['rol']
 
     try:
         conn = get_conn()
@@ -202,10 +213,10 @@ def register():
         # Crear un nuevo usuario
         user_id = str(uuid.uuid4())
         cur.execute("""
-            INSERT INTO usuario (id, nombre, email, password_hash)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO usuario (id, nombre, email, password_hash, rol)
+            VALUES (%s, %s, %s, %s, %s)
             RETURNING id;
-        """, (user_id, nombre, email, password_hash))
+        """, (user_id, nombre, email, password_hash, rol))
 
         conn.commit()
         cur.close()

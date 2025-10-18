@@ -23,6 +23,7 @@ document.getElementById('formLogin').addEventListener('submit', async (event) =>
                 // Guardar user_id y nombre en localStorage
                 localStorage.setItem('user_id', result.user_id);
                 localStorage.setItem('nombre', result.nombre);
+                localStorage.setItem('rol', result.rol);
 
                 
 

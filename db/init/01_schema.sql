@@ -20,7 +20,8 @@ CREATE TABLE IF NOT EXISTS usuario (
   email VARCHAR(255) UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
   created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now()
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  rol VARCHAR(50)
 );
 
 -- CITA

@@ -4,6 +4,7 @@ document.getElementById('formRegister').addEventListener('submit', async (event)
     const nombre = document.getElementById('nombre_usuario').value.trim();
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('contrasenia').value.trim();
+    const rol = document.getElementById('rol').value.trim();
 
     const mensaje = document.getElementById('mensaje_aviso');
     mensaje.classList.add('d-none');
@@ -12,7 +13,7 @@ document.getElementById('formRegister').addEventListener('submit', async (event)
         const response = await fetch('http://localhost:8000/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nombre, email, password })
+            body: JSON.stringify({ nombre, email, password, rol })
         });
 
         const result = await response.json();
@@ -21,6 +22,7 @@ document.getElementById('formRegister').addEventListener('submit', async (event)
             // ✅ Guardamos los datos para usarlos luego
             localStorage.setItem("user_id", result.user_id);
             localStorage.setItem("nombre", nombre);
+            localStorage.setItem("rol", rol);
 
             // ✅ Mensaje visual de confirmación
             mensaje.textContent = result.message;
