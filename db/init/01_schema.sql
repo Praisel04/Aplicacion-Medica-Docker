@@ -19,9 +19,10 @@ CREATE TABLE IF NOT EXISTS usuario (
   nombre VARCHAR(100) NOT NULL,
   email VARCHAR(255) UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
+  rol VARCHAR(50),
   created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now(),
-  rol VARCHAR(50)
+  updated_at TIMESTAMPTZ DEFAULT now()
+  
 );
 
 -- CITA

@@ -1,5 +1,6 @@
 const user_id = localStorage.getItem("user_id");
-const API_URL = `http://localhost:8000/citas?user_id=${user_id}`;
+const rol = localStorage.getItem("rol");
+const API_URL = `http://localhost:8000/citas?user_id=${user_id}&rol=${rol}`;
 const statusDiv = document.getElementById("status");
 const table = document.getElementById("tabla-citas");
 const tbody = document.getElementById("citas-body");
@@ -46,6 +47,7 @@ async function cargarCitas() {
     citas.forEach(cita => {
       const row = document.createElement("tr");
       row.innerHTML = `
+        <td>${cita.nombre_paciente || "—"}</td>
         <td>${cita.nombre_cita}</td>
         <td>${new Date(cita.fecha_hora).toLocaleString()}</td>
         <td class="estado ${cita.estado}">${cita.estado}</td>
@@ -202,4 +204,7 @@ document.getElementById("btn-salir").addEventListener("click", () => {
   window.location.href = "./login.html";
 });
 
-cargarCitas();
+// Llamar a la función cuando se carga la página
+document.addEventListener("DOMContentLoaded", () => {
+  cargarCitas();
+});

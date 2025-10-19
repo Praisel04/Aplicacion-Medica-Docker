@@ -25,6 +25,8 @@ document.getElementById('formLogin').addEventListener('submit', async (event) =>
                 localStorage.setItem('nombre', result.nombre);
                 localStorage.setItem('rol', result.rol);
 
+                console.log('Usuario logueado:', result);
+                console.log('Rol del usuario:', result.rol); 
                 
 
                 // Redirigir a la página principal de citas después de 2 segundos

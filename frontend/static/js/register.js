@@ -29,13 +29,15 @@ document.getElementById('formRegister').addEventListener('submit', async (event)
             mensaje.className = 'alert alert-success';
             mensaje.classList.remove('d-none');
 
-            // ✅ Opcional: redirigir automáticamente tras unos segundos
-            setTimeout(() => {
-                window.location.href = "./login.html";
-            }, 2000);
+            // // ✅ Opcional: redirigir automáticamente tras unos segundos
+            // setTimeout(() => {
+            //     window.location.href = "./login.html";
+            // }, 2000);
 
             // Limpieza del formulario
             document.getElementById('formRegister').reset();
+            console.log('Usuario registrado:', result);
+            console.log('Rol asignado:', rol);
         } else {
             mensaje.textContent = result.error || 'Error en el registro';
             mensaje.className = 'alert alert-danger';

@@ -68,7 +68,7 @@ def health():
 @app.route('/citas', methods=['GET'])
 def get_citas():
     user_id = request.args.get('user_id')
-    user_rol = request.args.get('rol')
+    rol = request.args.get('rol')
 
     if not user_id:
         return jsonify({"error": "Falta el parámetro user_id"}), 400
@@ -77,21 +77,33 @@ def get_citas():
         conn = get_conn()
         cur = conn.cursor()
 
-        if user_rol == 'medico':
-            # Médicos ven todas las citas
+        if rol == 'medico':
             cur.execute("""
-                SELECT id, nombre_cita, fecha_hora, estado, created_at
-                FROM cita
-                ORDER BY fecha_hora ASC;
-            """)
-        else:
-            # Pacientes ven sus citas
+        SELECT 
+            c.id, 
+            c.nombre_cita, 
+            c.fecha_hora, 
+            c.estado, 
+            c.created_at, 
+            u.nombre AS nombre_paciente
+        FROM cita c
+        JOIN usuario u ON c.usuario_id = u.id
+        ORDER BY c.fecha_hora ASC;
+    """)
+        elif rol == 'paciente':
             cur.execute("""
-                SELECT id, nombre_cita, fecha_hora, estado, created_at
-                FROM cita
-                WHERE usuario_id = %s
-                ORDER BY fecha_hora ASC;
-            """, (user_id,))
+        SELECT 
+            c.id, 
+            c.nombre_cita, 
+            c.fecha_hora, 
+            c.estado, 
+            c.created_at, 
+            u.nombre AS nombre_paciente
+        FROM cita c
+        JOIN usuario u ON c.usuario_id = u.id
+        WHERE c.usuario_id = %s
+        ORDER BY c.fecha_hora ASC;
+    """, (user_id,))
 
         citas = [
             {
@@ -99,11 +111,14 @@ def get_citas():
                 "nombre_cita": row[1],
                 "fecha_hora": row[2],
                 "estado": row[3],
-                "created_at": row[4]
+                "created_at": row[4],
+                "nombre_paciente": row[5]
             }
             for row in cur.fetchall()
         ]
 
+        print("➡️ CITAS DEVUELTAS:", citas)  # 👈 imprime aquí
+        
         cur.close()
         conn.close()
 
@@ -163,9 +178,9 @@ def eliminar_cita(cita_id):
         # Solo elimina si pertenece al usuario
         cur.execute("""
             DELETE FROM cita
-            WHERE id = %s AND usuario_id = %s
+            WHERE id = %s
             RETURNING id;
-        """, (cita_id, user_id))
+        """, (cita_id,))
 
         deleted = cur.fetchone()
         conn.commit()
@@ -217,15 +232,20 @@ def register():
             VALUES (%s, %s, %s, %s, %s)
             RETURNING id;
         """, (user_id, nombre, email, password_hash, rol))
-
+        
         conn.commit()
         cur.close()
         conn.close()
 
         return jsonify({
             "message": "Usuario registrado correctamente",
-            "user_id": user_id
+            "user_id": user_id,
+            "nombre": nombre,
+            "email": email,
+            "rol": rol  # 👈 Mostramos el valor recibido del frontend
         }), 201
+
+
 
     except Exception as e:
         print("Error en /register:", e)
@@ -246,7 +266,7 @@ def login():
         cur = conn.cursor()
 
         # Buscar usuario por email
-        cur.execute("SELECT id, nombre,password_hash FROM usuario WHERE email = %s;", (email,))
+        cur.execute("SELECT id, nombre,password_hash, rol FROM usuario WHERE email = %s;", (email,))
         user = cur.fetchone()
 
         cur.close()
@@ -255,7 +275,7 @@ def login():
         if not user:
             return jsonify({"error": "Correo no encontrado"}), 401
 
-        user_id, nombre, stored_hash = user
+        user_id, nombre, stored_hash, rol = user
 
         # Verificar la contraseña
         if not check_password_hash(stored_hash, password):
@@ -264,7 +284,8 @@ def login():
         return jsonify({
             "message": "Inicio de sesión correcto",
             "user_id": str(user_id),
-            "nombre" : nombre
+            "nombre" : nombre,
+            "rol": rol
         }), 200
 
     except Exception as e:
