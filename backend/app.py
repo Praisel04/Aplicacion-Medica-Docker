@@ -64,7 +64,7 @@ def health():
         return jsonify({"status": "degraded", "db": "down", "error": str(e)}), 503
 
 
-<<<<<<< HEAD
+
     sql = """
         SELECT
         c.id, c.paciente_id, c.fecha_hora, c.estado, c.created_at, c.updated_at,
