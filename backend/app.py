@@ -89,7 +89,7 @@ def health():
                 "paciente_apellidos": apellidos,
             })
     return jsonify(data), 200
-=======
+
 # === Obtener citas del usuario ===
 @app.route('/citas', methods=['GET'])
 def get_citas():
