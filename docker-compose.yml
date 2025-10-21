@@ -43,24 +43,5 @@ services:
       timeout: 3s
       retries: 5
 
-<<<<<<< HEAD
-=======
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: citas_frontend
-    restart: always
-    ports:
-      - "${FRONTEND_PORT:-8080}:80"
-    depends_on:
-      - backend
-    healthcheck:
-      test: ["CMD-SHELL", "test -s /usr/share/nginx/html/index.html || exit 1"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-
->>>>>>> feature/frontend
 volumes:
   db_data:
