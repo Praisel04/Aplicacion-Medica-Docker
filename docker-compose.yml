@@ -1,0 +1,46 @@
+# docker-compose.db.yml
+services:
+  db:
+    image: postgres:16
+    container_name: citas_db
+    restart: always
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: ${DB_OWNER}
+      POSTGRES_PASSWORD: ${DB_OWNER_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+      TZ: ${TZ}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_OWNER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile   # el Dockerfile basado en Ubuntu que preparamos
+    container_name: citas_backend
+    restart: always
+    environment:
+      DB_HOST: db
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:-appdb}
+      DB_USER: ${DB_USER:-appuser}
+      DB_PASSWORD: ${DB_PASSWORD:-supersecret_dev}
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8000/api/health || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  db_data:
