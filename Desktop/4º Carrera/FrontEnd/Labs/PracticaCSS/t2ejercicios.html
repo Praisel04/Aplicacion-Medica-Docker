@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejercicios tema 2</title>
+</head>
+<body>
+    <h1>Ejercicio 1</h1>
+    <div id="block">
+        Ejemplo de tipo block
+    </div>
+
+    <span id="inline">Ejemplo de tipo inline</span>
+
+    <h1>Ejercicio 2</h1>
+    <div id="caja">Esto es una caja</div>
+
+    <h1>Ejercicio 3</h1>
+    <div id="relativo">relativo</div>
+    <div id="absoluto">absoluto</div>
+    <div id="fijo">fijo</div>
+    <div id="sticky">sticky</div>
+
+    <h1>Ejercicio 4</h1>
+    <div id="contenedor">contenedor</div>
+    <div id="item">item</div>
+    <div id="itemdestacado">destacado</div>
+
+</body>
+
+<style>
+    #block{
+        display: block;
+        width: 300px;
+        height: 100px;
+        margin: 10px;
+        padding: 15px;
+        border: 2px solid black;
+        background: #f0f0f0;
+
+    }
+
+    #inline{
+        display: inline;
+        color: blue;
+        padding: 5px;
+        text-decoration: underline;
+    }
+
+    #caja{
+        float: right;
+        width: 40%;
+        margin: 10px;
+        background: lightgrey;
+        padding: 15px;
+    }
+
+    #relativo{
+        position: relative;
+        
+        left: 20px;
+        background: lightblue;
+    }
+
+    #absoluto{
+        position: absolute;
+        top: 150px;
+        left: 10px;
+        background: lightgreen;
+    }
+
+    #fijo{
+        position: fixed;
+        bottom: 10px;
+        right: 10px;
+        background: lightcoral;
+    
+    }
+
+    #sticky{
+        position: sticky;
+        top: 0;
+        background: lightpink;
+    }
+
+    #contenedor{
+        display: flex;
+        justify-content: space-between;
+        flex-direction: row;
+        align-items: center;
+        border: 2px solid black;
+        height: 150px;
+        margin: 10px;
+    }
+
+    #item{
+        flex-grow: 1;
+        background: lightgrey;
+        width: 100px;
+        height: 100px;
+        margin: 10px;
+    }
+
+    #itemdestacado{
+        flex-grow: 2;
+        background: lightcoral;
+        width: 100px;
+        height: 100px;
+        margin: 10px;
+        order: -1;
+    }
+</style>
+</html>
