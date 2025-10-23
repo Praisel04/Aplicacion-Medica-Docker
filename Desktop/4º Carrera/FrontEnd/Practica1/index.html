@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="./css/p1fe.css">
+
+    <title>Practica 1</title>
+</head>
+
+<body>
+    <!-- Formulario Basico Con BootStrap-->
+
+    <div class="container">
+        <div class="container text-center">
+            <h1 class="">Gaming Store</h1>
+            <!-- Columna 2: eslogan debajo -->
+            <div class="">
+                <p id="eslogan" class="lead">Largest Gaming Store</p>
+            </div>
+        </div>
+
+
+
+        <form>
+            <div class="mb-3">
+                <label for="nombre" class="form-label">Nombre:</label>
+                <input type="text" class="form-control" id="nombre" placeholder="Ingresa tu nombre">
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email:</label>
+                <input type="email" class="form-control" id="email" placeholder="Ingresa tu email">
+            </div>
+            
+            <div class="mb-3 position-relative">
+                <label for="password" class="form-label">Contraseña:</label>
+
+                <!-- Contenedor del input + icono -->
+                <div class="password-wrapper position-relative">
+                    <input type="password" class="form-control pe-5" id="password" placeholder="Ingresa tu contraseña"
+                        required>
+                    <button type="button" id="togglePass" class="btn-eye eye-closed"
+                        aria-label="Mostrar contraseña"></button>
+                </div>
+
+                <!-- Mensaje de validación, espacio fijo -->
+                <div id="passwordHelp" class="form-text">&nbsp;</div>
+            </div>
+
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="terminos" required>
+                <label class="form-check-label" for="terminos">Acepto los términos y condiciones</label>
+            </div>
+
+            <div class="buttons container my-3">
+                <div class="row text-center">
+                    <div class="col-12 col-md-6 mb-2 mb-md-0">
+                        <button type="submit" name="submit" class="mediaQ btn btn-primary w-100">Registrarse</button>
+                    </div>
+                    <div class="col-12 col-md-6">
+
+                        <a class="mediaQ btn btn-primary text-decoration-none text-white w-100"
+                            href="./login.html">Inicio de Sesion</a>
+
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+</body>
+<script src="./Js/app.js"></script>
+
+</html>

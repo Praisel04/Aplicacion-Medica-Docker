@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PruebasCSS</title>
+</head>
+<body>
+    <h1>Soy la prueba de un h1 modificado</h1>
+
+    <p id="aviso" class="destacado nota">Hola CSS</p>
+    <p class="nota"><a href=""><span>Hola soy un span en un a en un p con clase nota</span></a></p>
+    <a href="">No deberia modificarse</a>
+
+
+    <div class="clasico">Clasico</div>
+    <div class="borderbox">Border Box</div>
+
+    
+
+</body>
+
+<style>
+    p { color : black ; }
+    .destacado { color : green ; }
+    p.nota { color : orange ; }
+    #aviso { color : blue ; }
+    p#aviso { color : purple ; }
+    
+    /* Resultado final: Morado ya que usa cualquier parrafo con id="aviso", ademas de ser la ultima regla por tanto se usa esa */
+
+    p.nota a span{color: red; text-decoration: underline;}
+    /* Se usa esta notacion porque solo modificamos los span que estan dentro de un a que a su vez esta dentro de un p con clase nota */
+
+    div{border: 10px solid black; padding: 20px; margin: 8px; background-color: rgb(140, 137, 137);}
+
+    .clasico{width: 300px;}
+    .borderbox{width: 300px; box-sizing: border-box; background-color: lightgrey;}
+
+    /* La diferencia entre ambos divs es que el clasico se sale del ancho de 300px ya que el padding y border se suman al ancho total, mientras que en el borderbox el padding y border se incluyen dentro del ancho total de 300px */
+
+    /* Tipografias. */
+
+    html{font-size: 10px;}
+    p{font-size: 1rem;}
+    h1{font-size: clamp(1.1rem, 50vw, 3rem);} /* El tamaño de la fuente del h1 sera 1.8rem como minimo, 3rem como maximo y 4vw (4% del ancho de la ventana) en caso de que este valor este entre los dos anteriores */
+</style>
+
+</html>

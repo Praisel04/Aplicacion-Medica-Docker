@@ -64,7 +64,7 @@ def health():
         return jsonify({"status": "degraded", "db": "down", "error": str(e)}), 503
 
 
-<<<<<<< HEAD
+
     sql = """
         SELECT
         c.id, c.paciente_id, c.fecha_hora, c.estado, c.created_at, c.updated_at,
@@ -89,7 +89,7 @@ def health():
                 "paciente_apellidos": apellidos,
             })
     return jsonify(data), 200
-=======
+
 # === Obtener citas del usuario ===
 @app.route('/citas', methods=['GET'])
 def get_citas():
@@ -367,7 +367,6 @@ def editar_cita(cita_id):
     except Exception as e:
         print("Error en /citas (PUT):", e)
         return jsonify({"error": "Error interno del servidor"}), 500
->>>>>>> feature/frontend
 
 if __name__ == "__main__":
     # para ejecutar sin Gunicorn (desarrollo local opcional)
